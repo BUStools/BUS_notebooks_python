@@ -1,0 +1,159 @@
+---
+title: "Loading kallisto output"
+author: "Lambda Moses"
+date: "11/12/2018"
+output: html_document
+---
+
+In this notebook, I convert the output from kallisto into a matrix with gene expression in each cell that can be used for downstream analysis.
+```{r, message=FALSE}
+library(data.table)
+library(Matrix)
+library(Biostrings)
+library(stringr)
+library(zeallot)
+library(parallel)
+library(Rcpp)
+library(Seurat)
+library(loomR)
+ncores <- detectCores()
+# Get the C++ function that converts kallisto output into matrix
+sourceCpp("fill_cell_gene.cpp")
+```
+
+## From equivalence classes to genes
+```{r}
+# Load equivalence classes
+ECs <- fread("matrix.ec", header = FALSE, col.names = c("EC_index", "EC"))
+```
+
+```{r}
+# Get the 10x whitelist for whitelistetd barcodes
+whitelist <- fread("10xwhitelist.txt", header = FALSE)$V1
+```
+
+How do I get from ECs to genes? The number in each EC is the line number of the transcript compatible with the read in the index built in the first step of running kallisto. Here while I didn't run kallisto on this dataset myself, I know which transcriptomes were used for the index. In this dataset, 
+
+```{r, eval=FALSE}
+# Download the transcriptomes
+download.file("ftp://ftp.ensembl.org/pub/release-94/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz", "hs_cdna.fa.gz")
+download.file("ftp://ftp.ensembl.org/pub/release-94/fasta/mus_musculus/cdna/Mus_musculus.GRCm38.cdna.all.fa.gz", "mm_cdna.fa.gz")
+```
+
+```{r, eval = FALSE}
+hs_cdna <- readDNAStringSet("hs_cdna.fa.gz")
+mm_cdna <- readDNAStringSet("mm_cdna.fa.gz")
+```
+
+```{r, eval = FALSE}
+# Extract gene and transcript IDs from fasta line names
+names2genes <- function(cdna, species = "human") {
+  tr_regex <- switch (species,
+    "human" = "^ENST[\\d.]*",
+    "mouse" = "^ENSMUST[\\d.]*"
+  )
+  gene_regex <- switch(species,
+    "human" = "ENSG[\\d.]*",
+    "mouse" = "ENSMUSG[\\d.]*")
+  data.frame(transcript = str_extract(names(cdna), tr_regex),
+             gene = str_extract(names(cdna), gene_regex),
+             stringsAsFactors = FALSE)
+}
+```
+
+```{r, eval = FALSE}
+# Get the transcript and gene IDs
+tr2g_hs <- names2genes(hs_cdna)
+tr2g_mm <- names2genes(mm_cdna, species = "mouse")
+tr2g <- rbind(tr2g_hs, tr2g_mm)
+fwrite(tr2g, "tr2g")
+```
+
+```{r}
+# Load the results; not running the same thing again.
+tr2g <- fread("tr2g")
+```
+
+```{r}
+# Map each EC to gene
+genes <- tr2g$gene
+ECs[, c("EC_index", "EC") := .(EC_index, 
+                               str_split(EC, ","))]
+ECs[, genes := mclapply(EC, 
+                        function(x) {
+                          inds <- as.integer(x) + 1
+                          unique(genes[inds])
+                        }, mc.cores = ncores)]
+ECs[, EC := NULL]
+```
+
+How many distinct genes are present? 
+```{r}
+length(unique(unlist(ECs$genes)))
+```
+
+## From output to matrix
+What that Python script does is that for each barcode and each UMI, find the genes corresponding to the EC for that UMI, and if the same UMI appeared multiple times for the same barcode, the intersection of the corresponding genes is taken. Ideally, since the UMI identifies an mRNA, even if different reads with the same UMI map to multiple genes, the list of genes they map to should overlap since those reads are in fact from the same gene. If a UMI maps to multiple genes, then each of those gene gets an equal share of the UMI count. Later, for the same barcode, suppose a different UMI generated a set of genes that includes a gene that is already present in `cell_gene`, then that gene gets more share of the UMI. 
+
+```{r}
+fill_cell_geneR <- function(fn, genes, whitelist, est_ncells, est_ngenes, display_progress = TRUE) {
+  c(rowind, colptr, values, barcodes, genes) %<-% fill_cell_gene(fn, genes, whitelist, est_ncells, est_ngenes, display_progress)
+  sparseMatrix(i = rowind, p = colptr, x = values, 
+              dimnames = list(genes, barcodes), index1 = FALSE)
+}
+```
+
+```{r}
+Sys.time()
+res_mat <- fill_cell_geneR("output.sort.txt", ECs$genes, whitelist = whitelist, est_ncells = 7e5, est_ngenes = 8e4)
+Sys.time()
+```
+It took about 6 minutes to get the sparse matrix indices ready (for the C++ function to execute), and a little more to construct the sparse matrix in R, so in total it takes about 6 minutes and 40 seconds. I also tried directly returning a sparse matrix from the C++ function, and the time taken is about the same, and I'll need to add the column names and row names later. Perhaps I can further speed up the code by multithreading and improving my C++ fluency.
+```{r}
+# Check that the whitelist is enforced
+all(res$barcodes %in% whitelist)
+```
+
+```{r}
+# Check that all genes are detected in at least one cell
+all(Matrix::rowSums(res_mat) > 0)
+```
+
+```{r}
+# number of UMIs per cell
+tot_umi <- Matrix::colSums(res_mat)
+summary(tot_umi)
+```
+
+```{r}
+# total number of UMIs for each gene
+summary(Matrix::rowSums(res_mat))
+```
+
+```{r}
+# A histogram of UMIs per cell in cells without too many reads
+hist(tot_umi[tot_umi <= 500], breaks = 100, main = "Histogram of number of UMI per cell")
+```
+
+## Data analysis
+Cool, now let me use Seurat to explore this dataset.
+```{r, eval = FALSE}
+# Write to loom, the first run
+hgmm6k <- create("hgmm6k.loom", res_mat)
+```
+
+```{r}
+# For later runs
+hgmm6k <- connect("hgmm6k.loom", "r+")
+```
+
+```{r}
+NormalizeData(hgmm6k, chunk.size = NULL, chunk.dims = NULL)
+FindVariableGenes(hgmm6k, x.low.cutoff = 0.05, y.cutoff = 0.5, overwrite = TRUE)
+ScaleData(hgmm6k, overwrite = TRUE, chunk.size = NULL, chunk.dims = NULL)
+```
+
+```{r}
+RunPCA(hgmm6k, pcs.compute = 150, do.print = FALSE)
+```
+
