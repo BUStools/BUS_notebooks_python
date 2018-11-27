@@ -5,7 +5,7 @@ date: "11/12/2018"
 output: html_document
 ---
 
-In this notebook, I convert the output from kallisto into a matrix with gene expression in each cell that can be used for downstream analysis.
+In this notebook, I convert the output from kallisto bus into a matrix with gene expression in each cell that can be used for downstream analysis.
 ```{r, message=FALSE}
 library(data.table)
 library(Matrix)
