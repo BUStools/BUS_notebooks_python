@@ -1,6 +1,8 @@
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::depends(RcppProgress)]]
-#include <Rcpp.h>
+// [[Rcpp::depends(RcppArmadillo)]]
+#define ARMA_64BIT_WORD 1
+#include <RcppArmadillo.h>
 #include <progress.hpp>
 #include <progress_bar.hpp>
 #include <fstream>
@@ -11,6 +13,7 @@
 #include <unordered_set>
 using namespace std;
 using namespace Rcpp;
+using namespace arma;
 // Intersection of gene vectors
 //[[Rcpp::export]]
 vector<string> gene_intersect(vector<string> a, vector<string> b) {
@@ -108,12 +111,12 @@ List fill_cell_gene(const char* fn, List genes, vector<string> whitelist,
   barcodes.reserve(est_ncells); geneIDs.reserve(est_ngenes);
   vector<double> values;
   values.reserve(i);
-  vector<size_t> rowind, colptr;
+  vector<int> rowind, colptr;
   rowind.reserve(i); colptr.reserve(est_ncells + 1);
-  unordered_map<string, size_t> rowind_map;
+  unordered_map<string, int> rowind_map;
   unordered_map<string, double> g; // for individual genes
   i = 0; // Here keep track of number of iteration in case there's interruption
-  size_t entry = 0, gene_row = 0; // keep track of how many entries
+  int entry = 0, gene_row = 0; // keep track of how many entries
   string gn; // gene name
   Rcout << "Constructing sparse matrix" << endl;
   Progress p(cell_gene.size(), display_progress);
@@ -143,9 +146,15 @@ List fill_cell_gene(const char* fn, List genes, vector<string> whitelist,
   }
   // Remember the last entry of colptr
   colptr.push_back(entry);
-  return List::create(_["rowind"] = rowind, 
-                      _["colptr"] = colptr,
-                      _["values"] = values,
+  
+  // Convert to sparse matrix
+  // Convert to arma types
+  vec val_use(values);
+  uvec rind_use = conv_to<uvec>::from(rowind);
+  uvec colptr_use = conv_to<uvec>::from(colptr);
+  sp_mat res_mat(rind_use, colptr_use, val_use, geneIDs.size(), barcodes.size());
+  
+  return List::create(_["matrix"] = res_mat,
                       _["barcodes"] = barcodes,
                       _["genes"] = geneIDs);
 }

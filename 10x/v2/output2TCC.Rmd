@@ -24,12 +24,12 @@ sourceCpp("fill_cell_gene.cpp")
 ## From equivalence classes to genes
 ```{r}
 # Load equivalence classes
-ECs <- fread("matrix.ec", header = FALSE, col.names = c("EC_index", "EC"))
+ECs <- fread("../../matrix.ec", header = FALSE, col.names = c("EC_index", "EC"))
 ```
 
 ```{r}
 # Get the 10x whitelist for whitelistetd barcodes
-whitelist <- fread("10xwhitelist.txt", header = FALSE)$V1
+whitelist <- fread("../../10xwhitelist.txt", header = FALSE)$V1
 ```
 
 How do I get from ECs to genes? The number in each EC is the line number of the transcript compatible with the read in the index built in the first step of running kallisto. Here while I didn't run kallisto on this dataset myself, I know which transcriptomes were used for the index. In this dataset, 
@@ -71,7 +71,7 @@ fwrite(tr2g, "tr2g")
 
 ```{r}
 # Load the results; not running the same thing again.
-tr2g <- fread("tr2g")
+tr2g <- fread("../../tr2g")
 ```
 
 ```{r}
@@ -97,21 +97,25 @@ What that Python script does is that for each barcode and each UMI, find the gen
 
 ```{r}
 fill_cell_geneR <- function(fn, genes, whitelist, est_ncells, est_ngenes, display_progress = TRUE) {
-  c(rowind, colptr, values, barcodes, genes) %<-% fill_cell_gene(fn, genes, whitelist, est_ncells, est_ngenes, display_progress)
-  sparseMatrix(i = rowind, p = colptr, x = values, 
-              dimnames = list(genes, barcodes), index1 = FALSE)
+  if (!file.exists(fn)) {
+    stop(paste("The file", fn, "doesn't exist."))
+  }
+  c(res_mat, barcodes, genes) %<-% fill_cell_gene(fn, genes, whitelist, est_ncells, est_ngenes, display_progress)
+  rownames(res_mat) <- genes
+  colnames(res_mat) <- barcodes
+  res_mat
 }
 ```
 
 ```{r}
 Sys.time()
-res_mat <- fill_cell_geneR("output.sort.txt", ECs$genes, whitelist = whitelist, est_ncells = 7e5, est_ngenes = 8e4)
+res_mat <- fill_cell_geneR("../../output.sort.txt", ECs$genes, whitelist = whitelist, est_ncells = 7e5, est_ngenes = 8e4)
 Sys.time()
 ```
 It took about 6 minutes to get the sparse matrix indices ready (for the C++ function to execute), and a little more to construct the sparse matrix in R, so in total it takes about 6 minutes and 40 seconds. I also tried directly returning a sparse matrix from the C++ function, and the time taken is about the same, and I'll need to add the column names and row names later. Perhaps I can further speed up the code by multithreading and improving my C++ fluency.
 ```{r}
 # Check that the whitelist is enforced
-all(res$barcodes %in% whitelist)
+all(colnames(res_mat) %in% whitelist)
 ```
 
 ```{r}
