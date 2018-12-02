@@ -143,7 +143,7 @@ hist(tot_umi[tot_umi <= 500], breaks = 100, main = "Histogram of number of UMI p
 Here I use Seurat for some basic exploratory data analysis. If you're new to Seurat, see [these vignettes](https://satijalab.org/seurat/get_started.html) for a more thorough introduction.
 ```{r}
 seu <- CreateSeuratObject(res_mat) %>% 
-  NormalizeData() %>% FindVariableGenes()
+  NormalizeData() %>% ScaleData()
 ```
 
 ```{r}
