@@ -112,7 +112,7 @@ Sys.time()
 res_mat <- fill_cell_geneR("../../output.sort.txt", ECs$genes, whitelist = whitelist, est_ncells = 7e5, est_ngenes = 8e4)
 Sys.time()
 ```
-It took about 6 minutes to get the sparse matrix indices ready (for the C++ function to execute), and a little more to construct the sparse matrix in R, so in total it takes about 6 minutes and 40 seconds. I also tried directly returning a sparse matrix from the C++ function, and the time taken is about the same, and I'll need to add the column names and row names later. Perhaps I can further speed up the code by multithreading and improving my C++ fluency.
+For the hgmm6k dataset, which has about 280 million lines in the `output.sort.txt` file (which is over 9 GB) and about 6.7e5 cells, it took about 6 minutes to get the sparse matrix indices ready (for the C++ function to execute), and a little more to construct the sparse matrix in R, so in total it takes about 6 minutes and 40 seconds. I also tried directly returning a sparse matrix from the C++ function, and the time taken is about the same, and I'll need to add the column names and row names later. Perhaps I can further speed up the code by multithreading and improving my C++ fluency.
 ```{r}
 # Check that the whitelist is enforced
 all(colnames(res_mat) %in% whitelist)
@@ -139,8 +139,52 @@ summary(Matrix::rowSums(res_mat))
 hist(tot_umi[tot_umi <= 500], breaks = 100, main = "Histogram of number of UMI per cell")
 ```
 
-## Data analysis
-Cool, now let me use Seurat to explore this dataset.
+## Data analysis (with Seurat object)
+Here I use Seurat for some basic exploratory data analysis. If you're new to Seurat, see [these vignettes](https://satijalab.org/seurat/get_started.html) for a more thorough introduction.
+```{r}
+seu <- CreateSeuratObject(res_mat) %>% 
+  NormalizeData() %>% FindVariableGenes()
+```
+
+```{r}
+# Basic QC
+VlnPlot(seu, features.plot = c("nGene", "nUMI"))
+```
+
+You should adjust the x and y cutoffs in `FindVariableGenes` if you want more or fewer highly variable genes.
+```{r}
+seu <- FindVariableGenes(seu, y.cutoff = 1)
+# How many highly variable genes
+length(seu@var.genes)
+```
+
+```{r}
+seu <- RunPCA(seu, do.print = FALSE, pcs.compute = 40, pc.genes = seu@var.genes)
+PCElbowPlot(seu, num.pc = 40)
+```
+
+```{r}
+# Clustering
+seu <- FindClusters(seu, resolution = 1)
+```
+
+```{r}
+PCAPlot(seu)
+```
+
+```{r}
+seu <- RunTSNE(seu, dims.use = 1:30)
+```
+
+```{r}
+TSNEPlot(seu)
+```
+
+## Data analysis (with loom)
+This section is for data exploration of datasets that don't fit into memory. The data format loom stores data on disk in an hdf5 based format, and when working with loom files, only a portion of the data is loaded into memory at a time, thus avoiding the need to force very large datasets into memory. Seurat objects grow very quickly in size as the analysis goes on. 
+
+Please use the loom branch of Seurat for this section, which is different from the version from CRAN. See [this vignette](https://satijalab.org/loomR/loomR_tutorial.html) for an introduction to the R interface to loom file, and see [this vignette](https://satijalab.org/seurat/mca_loom.html) for an introduction to the loom edition of Seurat and how to install it. Note that the loom edition of Seurat is still in development, so you may encounter some bugs. 
+
 ```{r, eval = FALSE}
 # Write to loom, the first run
 hgmm6k <- create("hgmm6k.loom", res_mat)
@@ -158,6 +202,22 @@ ScaleData(hgmm6k, overwrite = TRUE, chunk.size = NULL, chunk.dims = NULL)
 ```
 
 ```{r}
-RunPCA(hgmm6k, pcs.compute = 150, do.print = FALSE)
+RunPCA(hgmm6k, pcs.compute = 75, do.print = FALSE)
+```
+
+```{r}
+PCElbowPlot(hgmm6k, num.pc = 75)
+```
+
+```{r}
+PCAPlot(hgmm6k)
+```
+
+```{r}
+RunTSNE(hgmm6k, dims.use = 1:50)
+```
+
+```{r}
+TSNEPlot(hgmm6k)
 ```
 
