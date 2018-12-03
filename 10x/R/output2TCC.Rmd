@@ -5,7 +5,7 @@ date: "11/12/2018"
 output: html_document
 ---
 
-In this notebook, I convert the output from kallisto bus into a matrix with gene expression in each cell that can be used for downstream analysis.
+In this notebook, we convert the output from kallisto bus into a sparse matrix with gene expression in each cell that can be used for downstream analysis.
 ```{r, message=FALSE}
 library(data.table)
 library(Matrix)
@@ -14,6 +14,7 @@ library(stringr)
 library(zeallot)
 library(parallel)
 library(Rcpp)
+library(RcppArmadillo)
 library(Seurat)
 library(loomR)
 ncores <- detectCores()
@@ -27,12 +28,13 @@ sourceCpp("fill_cell_gene.cpp")
 ECs <- fread("../../matrix.ec", header = FALSE, col.names = c("EC_index", "EC"))
 ```
 
+In the Cell Ranger installation, there is a file with all the known barcodes included in the 10x assay kit, and this is the whitelist we're referring to here. See [this page](https://kb.10xgenomics.com/hc/en-us/articles/115004506263-What-is-a-barcode-whitelist-) for where to find the whitelist file. Note that you don't need to run Cell Ranger to get this whitelist.
 ```{r}
 # Get the 10x whitelist for whitelistetd barcodes
 whitelist <- fread("../../10xwhitelist.txt", header = FALSE)$V1
 ```
 
-How do I get from ECs to genes? The number in each EC is the line number of the transcript compatible with the read in the index built in the first step of running kallisto. Here while I didn't run kallisto on this dataset myself, I know which transcriptomes were used for the index. In this dataset, 
+How do we get from ECs to genes? The number in each EC is the line number of the transcript compatible with the read in the index built in the first step of running kallisto. Here while I didn't run kallisto on this dataset myself, I know which transcriptomes were used for the index. In this dataset, 
 
 ```{r, eval=FALSE}
 # Download the transcriptomes
@@ -66,6 +68,7 @@ names2genes <- function(cdna, species = "human") {
 tr2g_hs <- names2genes(hs_cdna)
 tr2g_mm <- names2genes(mm_cdna, species = "mouse")
 tr2g <- rbind(tr2g_hs, tr2g_mm)
+# Save results
 fwrite(tr2g, "tr2g")
 ```
 
@@ -112,7 +115,7 @@ Sys.time()
 res_mat <- fill_cell_geneR("../../output.sort.txt", ECs$genes, whitelist = whitelist, est_ncells = 7e5, est_ngenes = 8e4)
 Sys.time()
 ```
-For the hgmm6k dataset, which has about 280 million lines in the `output.sort.txt` file (which is over 9 GB) and about 6.7e5 cells, it took about 6 minutes to get the sparse matrix indices ready (for the C++ function to execute), and a little more to construct the sparse matrix in R, so in total it takes about 6 minutes and 40 seconds. I also tried directly returning a sparse matrix from the C++ function, and the time taken is about the same, and I'll need to add the column names and row names later. Perhaps I can further speed up the code by multithreading and improving my C++ fluency.
+For the hgmm6k dataset, which has about 280 million lines in the `output.sort.txt` file (which is over 9 GB) and about 6.7e5 cells, it took about 6 minutes to get the sparse matrix indices ready (for the C++ function to execute), and a little more to construct the sparse matrix in R, so in total it takes about 6 minutes and 40 seconds. Perhaps I can further speed up the code by multithreading and improving my C++ fluency.
 ```{r}
 # Check that the whitelist is enforced
 all(colnames(res_mat) %in% whitelist)
@@ -140,7 +143,7 @@ hist(tot_umi[tot_umi <= 500], breaks = 100, main = "Histogram of number of UMI p
 ```
 
 ## Data analysis (with Seurat object)
-Here I use Seurat for some basic exploratory data analysis. If you're new to Seurat, see [these vignettes](https://satijalab.org/seurat/get_started.html) for a more thorough introduction.
+Here we use Seurat for some basic exploratory data analysis. If you're new to Seurat, see [these vignettes](https://satijalab.org/seurat/get_started.html) for a more thorough introduction.
 ```{r}
 seu <- CreateSeuratObject(res_mat) %>% 
   NormalizeData() %>% ScaleData()
