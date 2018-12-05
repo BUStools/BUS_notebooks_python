@@ -7,6 +7,8 @@ Installing kallisto: https://pachterlab.github.io/kallisto/download
 
 Installing bustools: https://github.com/BUStools/bustools
 
+Alternatively, you can use the bustools binaries that are available for linux and mac: https://github.com/BUStools/bustools/releases
+
 ## Complete notebooks
 These notebooks run form start to end, they download and process all needed data. Just place them on an empty folder and run them.
 
