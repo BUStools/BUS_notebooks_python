@@ -3,7 +3,7 @@
 This repository contains example notebooks for parsing and processing BUS format single-cell RNA-seq files.
 To run the notebooks, make sure you have `kallisto >= 0.45` and `bustools` installed
 
-Installing kallisto: https://pachterlab.github.io/kallisto/starting
+Installing kallisto: https://pachterlab.github.io/kallisto/download
 
 Installing bustools: https://github.com/BUStools/bustools
 
