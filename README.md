@@ -4,7 +4,8 @@ This repository contains example notebooks for parsing and processing BUS format
 To run the notebooks, make sure you have `kallisto >= 0.45` installed, and `bustools` installed
 
 Installing kallisto: https://pachterlab.github.io/kallisto/starting
-Installing bustools: 
+
+Installing bustools: https://github.com/BUStools/bustools
 
 ## Complete notebooks
 These notebooks run form start to end, they download and process all needed data. Just place them on an empty folder and run them.
