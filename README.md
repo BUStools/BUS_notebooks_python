@@ -36,3 +36,4 @@ These notebooks are still a work in progress and may not have the code to downlo
 
 #### [inDrops - GSE102827 mouse visual cortex](https://github.com/BUStools/bustools-notebooks/blob/master/dataset-notebooks/indrops_GSM2746895_python/indrops_brain_activity.ipynb) - Python 
 
+#### [Seq-Well - GSE92495 HEK/3T3 mixing, PBMCs, and TB-exposed Macrophages](https://github.com/BUStools/bustools-notebooks/blob/master/dataset-notebooks/seqwell_GSE92495_python/kallisto_seqwell_pbmc.ipynb) - Python 
