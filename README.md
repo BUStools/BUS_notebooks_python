@@ -7,8 +7,7 @@ To run the notebooks, make sure you have `kallisto >= 0.45` and `bustools` insta
 
 [bustools](https://github.com/BUStools/bustools)
 
-## Note for R users
-Please install package [BUStoolsR](https://github.com/lambdamoses/BUStoolsR), and see the repository [BUStoolsR_notebooks](https://github.com/lambdamoses/BUStoolsR_notebooks) for example notebooks. The notebooks in that repository can be viewed on [this website](https://lambdamoses.github.io/BUStoolsR_notebooks/index.html).
+R notebooks require installation of the [BUSparRse](https://github.com/BUStools/) R package.
 
 ## Complete notebooks
 These notebooks can be used to completely process datasets, starting with downloading the raw data all the way to basic QC plots. They are intended as tutorials on the use of the BUS format.
