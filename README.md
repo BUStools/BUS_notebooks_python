@@ -8,12 +8,12 @@ To run the notebooks, make sure you have `kallisto >= 0.45` and `bustools` insta
 [bustools](https://github.com/BUStools/bustools)
 
 ## Note for R users
-Please install package [BUStoolsR](https://github.com/lambdamoses/BUStoolsR), and see the repository [BUStoolsR_notebooks](https://github.com/lambdamoses/BUStoolsR_notebooks) for example notebooks. The notebooks in that repository will be built into a website soon, with [`workflowr`](https://jdblischak.github.io/workflowr/articles/wflow-01-getting-started.html).
+Please install package [BUStoolsR](https://github.com/lambdamoses/BUStoolsR), and see the repository [BUStoolsR_notebooks](https://github.com/lambdamoses/BUStoolsR_notebooks) for example notebooks. The notebooks in that repository can be viewed on [this website](https://lambdamoses.github.io/BUStoolsR_notebooks/index.html).
 
 ## Complete notebooks
 These notebooks can be used to completely process datasets, starting with downloading the raw data all the way to basic QC plots. They are intended as tutorials on the use of the BUS format.
 
-#### [10x v2 chemistry - 1k 1:1 Mixture of Fresh Frozen Human (HEK293T) and Mouse (NIH3T3) Cells](https://github.com/lambdamoses/BUStoolsR_notebooks/blob/master/analysis/10xv2.Rmd) - R
+#### [10x v2 chemistry - 1k 1:1 Mixture of Fresh Frozen Human (HEK293T) and Mouse (NIH3T3) Cells](https://lambdamoses.github.io/BUStoolsR_notebooks/10xv2.html) - R
 
 #### [10x v2 chemistry - 100 1:1 Mixture of Fresh Frozen Human (HEK293T) and Mouse (NIH3T3) Cells](https://github.com/BUStools/bustools-notebooks/blob/master/dataset-notebooks/10x_hgmm_100_python/10x_hgmm_100.ipynb) - Python 
 
