@@ -7,8 +7,13 @@ To run the notebooks, make sure you have `kallisto >= 0.45` and `bustools` insta
 
 [bustools](https://github.com/BUStools/bustools)
 
+## Note for R users
+Please install package [BUStoolsR](https://github.com/lambdamoses/BUStoolsR), and see the repository [BUStoolsR_notebooks](https://github.com/lambdamoses/BUStoolsR_notebooks) for example notebooks. The notebooks in that repository will be built into a website soon, with [`workflowr`](https://jdblischak.github.io/workflowr/articles/wflow-01-getting-started.html).
+
 ## Complete notebooks
 These notebooks can be used to completely process datasets, starting with downloading the raw data all the way to basic QC plots. They are intended as tutorials on the use of the BUS format.
+
+#### [10x v2 chemistry - 1k 1:1 Mixture of Fresh Frozen Human (HEK293T) and Mouse (NIH3T3) Cells](https://github.com/lambdamoses/BUStoolsR_notebooks/blob/master/analysis/10xv2.Rmd) - R
 
 #### [10x v2 chemistry - 100 1:1 Mixture of Fresh Frozen Human (HEK293T) and Mouse (NIH3T3) Cells](https://github.com/BUStools/bustools-notebooks/blob/master/dataset-notebooks/10x_hgmm_100_python/10x_hgmm_100.ipynb) - Python 
 
@@ -21,8 +26,6 @@ These notebooks can be used to completely process datasets, starting with downlo
 
 ## Notebooks in progress
 These notebooks are still a work in progress and may not have all the code needed to download and process data automatically.
-
-#### [10x v2 chemistry - 6k 1:1 Mixture of Fresh Frozen Human (HEK293T) and Mouse (NIH3T3) Cells](https://github.com/BUStools/bustools-notebooks/blob/master/dataset-notebooks/10x_hgmm_6k_v2chem_R/output2TCC.Rmd) - R 
 
 #### [10x v2 chemistry - 1k PBMCs from a Healthy Donor](https://github.com/BUStools/bustools-notebooks/blob/master/dataset-notebooks/10x_pbmc_1k_v2chem_python/10x_pbmc_1k_v2chem.ipynb) - Python 
 
