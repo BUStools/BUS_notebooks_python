@@ -33,3 +33,5 @@ These notebooks are still a work in progress and may not have all the code neede
 #### [inDrops - GSE102827 mouse visual cortex](https://github.com/BUStools/bustools-notebooks/blob/master/dataset-notebooks/indrops_GSM2746895_python/indrops_brain_activity.ipynb) 
 
 #### [Seq-Well - GSE92495 HEK/3T3 mixing, PBMCs, and TB-exposed Macrophages](https://github.com/BUStools/bustools-notebooks/blob/master/dataset-notebooks/seqwell_GSE92495_python/kallisto_seqwell_pbmc.ipynb)
+
+#### [10x_vALL_chemistry workflow - Get TCC and GC Matrix example (4k Pan T Cells from a Healthy Donor)](https://github.com/BUStools/BUS_notebooks_python/blob/master/dataset-notebooks/10x_t4k_TCC/bus2tcc-gene.ipynb)
