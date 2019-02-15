@@ -9,7 +9,7 @@ To run the notebooks, make sure you have `kallisto >= 0.45` and `bustools` insta
 
 ## Getting started
 
-We recommend beginners work through the notebook:
+We recommend beginners work through this notebook:
 #### [10x v2 chemistry - 6k Mixture of Fresh Frozen Human (HEK293T) and Mouse (NIH3T3) Cells](https://github.com/BUStools/BUS_notebooks_python/blob/master/dataset-notebooks/10x_hgmm_6k_v2chem_python/10x_hgmm_6k_v2chem.ipynb)
 
 ## Complete notebooks
