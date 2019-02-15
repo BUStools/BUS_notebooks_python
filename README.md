@@ -7,6 +7,11 @@ To run the notebooks, make sure you have `kallisto >= 0.45` and `bustools` insta
 
 [bustools](https://github.com/BUStools/bustools)
 
+## Getting started
+
+We recommend beginners work through the notebook:
+#### [10x v2 chemistry - 6k Mixture of Fresh Frozen Human (HEK293T) and Mouse (NIH3T3) Cells](https://github.com/BUStools/BUS_notebooks_python/blob/master/dataset-notebooks/10x_hgmm_6k_v2chem_python/10x_hgmm_6k_v2chem.ipynb)
+
 ## Complete notebooks
 These notebooks can be used to completely process datasets, starting with downloading the raw data all the way to basic QC plots. They are intended as tutorials on the use of the BUS format.
 
